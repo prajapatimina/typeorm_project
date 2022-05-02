@@ -31,8 +31,10 @@ export class User {
     })
     password: string
 
-    @Column({default:false})
+    @Column()
     status: boolean
+
+    
 
   
 

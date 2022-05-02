@@ -19,7 +19,7 @@ exports.createUser = async function (req:Request, res: Response) {
         phoneNo:req.body.phoneNo,
         address:req.body.address,
         email: req.body.email,
-        password:hashPassword,
+        password:req.body.password,
         status:req.body.status
     })
     const errors = await validate(user);
@@ -28,11 +28,18 @@ exports.createUser = async function (req:Request, res: Response) {
         // throw new Error(`Validation failed!`);
         console.error(errors)
         return res.send({
-            message:errors[0].constraints.matches})
+            message:errors[0].constraints})
         
     } else {
         console.log('validation success')
-       const result = await AppDataSource.getRepository(User).save(user);
+       const result = await AppDataSource.getRepository(User).save({
+        name:req.body.name,
+        phoneNo:req.body.phoneNo,
+        address:req.body.address,
+        email: req.body.email,
+        password:hashPassword,
+        status:req.body.status
+    });
     return res.send(result)
 
     }
