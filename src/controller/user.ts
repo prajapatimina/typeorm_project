@@ -22,27 +22,36 @@ exports.createUser = async function (req:Request, res: Response) {
         password:hashPassword,
         status:req.body.status
     })
-    // const errors = await validate(user);
-    // if (errors.length > 0) {
-    //     throw new Error(`Validation failed!`);
-    // } else {
-    //    const result = await AppDataSource.getRepository(User).save(user);
-    // return res.send(result)
+    const errors = await validate(user);
 
-    // }
+    if (errors.length > 0) {
+        // throw new Error(`Validation failed!`);
+        console.error(errors)
+        return res.send({
+            message:errors[0].constraints.matches})
+        
+    } else {
+        console.log('validation success')
+       const result = await AppDataSource.getRepository(User).save(user);
+    return res.send(result)
+
+    }
+
+        // const results = await AppDataSource.getRepository(User).save(user)
+        // return res.send(results)
     
-    const results = await AppDataSource.getRepository(User).save(user)
-    return res.send(results)
 }
 
 exports.getUser = async function (req: Request, res: Response) {
     const users = await AppDataSource.getRepository(User).find()
+    if(!users) res.send('No users found')
     res.json(users)
 }
 
 exports.getUserById = async function (req: Request, res: Response) {
     const id = req.params.id
     const results = await AppDataSource.getRepository(User).findOne({where:{id:parseInt(id)}})
+    if(!results) res.send('User with given id not found.')
     return res.send(results)
 }
 

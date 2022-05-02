@@ -21,17 +21,12 @@ AppDataSource.initialize()
 
     const app = express() 
     app.use(express.json())
- 
+
+    const user = require('./routes/user')
     
-    app.post('/users',userController.createUser)
+    app.use('/api/users',user)
     
     
-    
-    app.get("/users", userController.getUser )
-    
-    app.get("/users/:id", userController.getUserById)
-    app.put("/users/:id", userController.updateUser)
-    app.delete("/users/:id", userController.deleteUser)
     
     app.listen(port, () => {
         console.log(`Server is runnig on http://localhost:${port}`)
