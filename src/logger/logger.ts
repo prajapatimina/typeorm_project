@@ -23,8 +23,6 @@ const logger = pino(
         level: 'http',
     },
 
-    pino.destination(`${__dirname}/log/logger.log`)
-    // pino.destination(__dirname +"/log/logger.log")
 );
 
 export default logger;

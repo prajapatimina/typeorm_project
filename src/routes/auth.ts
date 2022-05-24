@@ -10,4 +10,3 @@ authRoutes.post('/login',
 authRoutes.post('/verify',authController.verifyLogin);
 
 export default authRoutes;
-// module.exports = authRoutes;

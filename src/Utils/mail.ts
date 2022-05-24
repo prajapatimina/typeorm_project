@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import * as nodemailer from 'nodemailer';
-import logger from './logger/logger';
+import logger from '../logger/logger';
 
 const sendEmail = async (email, subject, text, html) => {
     try {
@@ -22,11 +22,9 @@ const sendEmail = async (email, subject, text, html) => {
             text: text,
             html: html,
         });
-        console.log('email sent sucessfully');
-        logger.info('Email has been sent.');
+        logger.info('Email has been sent successfully.');
     } catch (error) {
-        console.log('email not sent');
-        console.log(error);
+        logger.error(error.message);
     }
 };
 export default sendEmail;

@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { SUCCESS_MESSAGE } from '../constant/user';
+import { ERROR_MESSAGE, STATUS, SUCCESS_MESSAGE } from '../constant/user';
 import userService from '../service/userService';
 import CustomError from '../errors/customError';
+import logger from '../logger/logger';
 
 class UserController {
     private static instance: UserController;
@@ -16,7 +17,7 @@ class UserController {
     async listUser(req: Request, res: Response) {
         try {
             const users = await userService.list();
-            if (users.length == 0) throw new CustomError('404','No user found');
+            if (users.length == 0) throw new CustomError(STATUS.notFound,ERROR_MESSAGE.notFound);
             res.send(users);
         } catch (error) {
             return res.status(error.statusCode).json({
@@ -28,10 +29,11 @@ class UserController {
 
     async createUser(req: Request, res: Response) {
         try {
-            const user = await userService.create(req.body);
+            const user = await userService.create(req.body,req.body.role);
             res.send(user);
         } catch (error) {
-            return res.status(error.status).json({
+            logger.error(error.message);
+            return res.status(error.status || 404).json({
                 code: error.status,
                 msg: error.message
             });
@@ -96,7 +98,7 @@ class UserController {
 
     async verifyResetPasswordToken(req: Request, res: Response){
         try {
-            const resetToken = await userService.resetPassword(req.body.email,req.body.token,req.body.password);
+            const resetToken = await userService.resetPassword(req.body);
             res.send(resetToken);
         } catch (error) {
             return res.status(error.status).json({
@@ -108,7 +110,7 @@ class UserController {
 
     async changePassword(req: Request, res: Response){
         try {
-            const user = await userService.changePassword(req.body);
+            const user = await userService.changePassword(req['user'].userId,req.body);
             res.send(user);
         } catch (error) {
             return res.status(error.status ||500).json({
@@ -120,7 +122,7 @@ class UserController {
 
     async profile(req: Request, res: Response){
         try {
-            const user = await userService.profile(req.headers['authorization']);
+            const user = await userService.profile(req['user'].userId);
             res.send(user);
         } catch (error) {
             return res.status(error.status).json({

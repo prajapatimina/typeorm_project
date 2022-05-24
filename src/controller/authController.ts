@@ -1,8 +1,7 @@
+import { validate } from 'class-validator';
 import { Request, Response } from 'express';
+import { AuthDto } from '../dto/user/auth.model';
 import authService from '../service/authService';
-import CustomError from '../errors/customError';
-
-
 class AuthController {
     private static instance: AuthController;
 
@@ -15,10 +14,19 @@ class AuthController {
 
     async login(req: Request, res: Response) {
         try {
-            const auth = await authService.login(req.body);
-            res.send(auth);
+            const loginData = new AuthDto();
+            loginData.email = req.body.email;
+            loginData.password = req.body.password;
+
+            const validationError = await validate(loginData);
+            if(validationError.length > 0){
+               return res.send(validationError[0].constraints);
+            }
+
+            const auth = await authService.login(loginData);
+            return res.send(auth);
         } catch (error) {
-            return res.status(error.status).json({
+            return res.status(error.status || 400).json({
                 code: error.status,
                 msg: error.errorMessage
             });
@@ -28,7 +36,7 @@ class AuthController {
     async verifyLogin(req: Request, res: Response){
         try {
             const auth = await authService.loginVerify(req.body.email,req.body.code);
-            res.send(auth);
+            return res.send(auth);
         } catch (error) {
             return res.status(error.statusCode).json({
                 code: error.statusCode,
