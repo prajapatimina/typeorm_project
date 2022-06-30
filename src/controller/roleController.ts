@@ -32,9 +32,9 @@ class RoleController{
             const role = await roleService.create(roleData);
             return res.send(role);
         } catch (error) {
-            return res.status(error.status || 400).json({
-                code: error.status,
-                msg: error.message
+            return res.status(error.statusCode).json({
+                code: error.statusCode,
+                msg: error.errorMessage
             });
         }
     }
@@ -42,12 +42,11 @@ class RoleController{
     async getAll(req: Request,res:Response){
         try {
             const roles = await roleService.getAll();
-            if (roles.length == 0) throw new CustomError(STATUS.notFound,ERROR_MESSAGE.notFound);
             return  res.send(roles);
         } catch (error) {
             return res.status(error.statusCode).json({
-                code:error.status,
-                msg:error.message
+                code:error.statusCode,
+                msg:error.errorMessage
             });
         }
     }

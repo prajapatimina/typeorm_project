@@ -15,8 +15,8 @@ function route(app:Application){
     app.use('/api/permission',permissionRoutes);
     app.use('/api/rolePermission',rolePermissionRoutes);
     app.use('/api/userRoles',userRolesRoutes);
-    app.use('/', (req, res) => {
-        res.send('This is express');
-    });
+    // app.use('/', (req, res) => {
+    //     res.send('This is express');
+    // });
 }
 export default route;

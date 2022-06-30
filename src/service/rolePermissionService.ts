@@ -17,41 +17,51 @@ class RolePermissionService{
     }
 
     async getAll(){
-        const permission = await RolePermissionModel.find({relations:{role:true}});
+        try {
+            const permission = await RolePermissionModel.find({relations:{role:true}});
+        if(permission.length === 0) throw new CustomError(STATUS.invalid, ERROR_MESSAGE.notFound);
         return permission;
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
-    async create(data){
-
-        const newPermission = await RolePermissionModel.create(data);
-        logger.info(newPermission,'Permission created');
-        await RolePermissionModel.save(newPermission);
-        return newPermission;
-    }
 
     async getById(id){
-        const rolePermission = await RolePermissionModel.findOne({where:{id:id},
-            relations:{role:true}});
-        if(!rolePermission) return "No role permission found";
-        return rolePermission;
+        try {
+            const rolePermission = await RolePermissionModel.findOne({where:{id:id},
+                relations:{role:true}});
+            if(!rolePermission) throw new CustomError(STATUS.notFound, ERROR_MESSAGE.notFound);
+            return rolePermission;
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
     async update(id,data){
-        const rolePermission = await RolePermissionModel.findOneBy({ id: id });
-        if (!rolePermission) throw new CustomError(STATUS.notFound, ERROR_MESSAGE.notFound);
+        try {
+            const rolePermission = await RolePermissionModel.findOneBy({ id: id });
+            if (!rolePermission) throw new CustomError(STATUS.notFound, ERROR_MESSAGE.notFound);
 
-        const updatedRole = await RolePermissionModel.merge(rolePermission, data);
-        const update = await RolePermissionModel.save(updatedRole);
-        return update;
+            const updatedRole = await RolePermissionModel.merge(rolePermission, data);
+            const update = await RolePermissionModel.save(updatedRole);
+            return update;
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
     async delete(id) {
-        const rolePermission = await RolePermissionModel.findOneBy({ id: id });
-        logger.info(rolePermission);
-        if (!rolePermission) throw new CustomError('404', ERROR_MESSAGE.notFound);
+        try {
+            const rolePermission = await RolePermissionModel.findOneBy({ id: id });
+            logger.info(rolePermission);
+            if (!rolePermission) throw new CustomError('404', ERROR_MESSAGE.notFound);
 
-        await RolePermissionModel.remove(rolePermission);
-        return rolePermission;
+            await RolePermissionModel.remove(rolePermission);
+            return rolePermission;
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
 }

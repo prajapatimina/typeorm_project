@@ -17,4 +17,6 @@ userRoutes.post('/reset',UserController.resetPassword);
 userRoutes.post('/reset/verify', UserController.verifyResetPasswordToken);
 userRoutes.post('/changePassword',[auth],UserController.changePassword);
 
+userRoutes.get('/user/download',UserController.downloadSample);
+
 export default userRoutes;

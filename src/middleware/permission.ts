@@ -11,14 +11,14 @@ function checkPermission(getPermission){
     return async function(req:Request, res:Response, next:NextFunction) {
 
     const user = req['user'];
-    const loggegIn = await UserRoleModel.findOne({where:{user:user.userId},relations:{user:true, role:true}});
+    const loggegInUser= await UserRoleModel.findOne({where:{user:user.userId},relations:{user:true, role:true}});
 
-        const role = await RolePermissionModel.createQueryBuilder("rolePermission")
-            .where("rolePermission.roleId = :roleId", { roleId: loggegIn.role.id })
+        const rolePermission = await RolePermissionModel.createQueryBuilder("rolePermission")
+            .where("rolePermission.roleId = :roleId", { roleId: loggegInUser.role.id })
             .getOne();
 
         const result = {
-            permission:role.permission
+            permission:rolePermission.permission
         };
 
         const results = result.permission.find(obj => {

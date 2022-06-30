@@ -45,31 +45,49 @@ class RoleService {
     }
 
     async getAll() {
-        const roles = await RoleModel.find();
-        return roles;
+        try {
+            const roles = await RoleModel.find();
+            if (roles.length === 0) throw new CustomError(STATUS.notFound,ERROR_MESSAGE.notFound);
+            return roles;
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
     async getById(id) {
-        const role = await RoleModel.findOneBy({ id: id });
-        if (!role) throw new CustomError(STATUS.notFound, ERROR_MESSAGE.notFound);
-        return role;
+        try {
+            const role = await RoleModel.findOneBy({ id: id });
+            if (!role) throw new CustomError(STATUS.notFound, ERROR_MESSAGE.notFound);
+            return role;
+        } catch (error) {
+            throw  new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
+
     }
     async updateRole(id, data) {
-        const role = await RoleModel.findOneBy({ id: id });
-        if (!role) throw new CustomError(STATUS.notFound, ERROR_MESSAGE.notFound);
+        try {
+            const role = await RoleModel.findOneBy({ id: id });
+            if (!role) throw new CustomError(STATUS.notFound, ERROR_MESSAGE.notFound);
 
-        const updatedRole = await RoleModel.merge(role, data);
-        const update = await RoleModel.save(updatedRole);
-        return update;
+            const updatedRole = await RoleModel.merge(role, data);
+            const update = await RoleModel.save(updatedRole);
+            return update;
+        } catch (error) {
+            throw  new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
     async deleteRole(id) {
-        const role = await RoleModel.findOneBy({ id: id });
+        try {
+            const role = await RoleModel.findOneBy({ id: id });
         logger.info(role);
-        if (!role) throw new CustomError('404', ERROR_MESSAGE.notFound);
+        if (!role) throw new CustomError(STATUS.notFound, ERROR_MESSAGE.notFound);
 
         await RoleModel.remove(role);
         return role;
+        } catch (error) {
+            throw  new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 }
 export default RoleService.getInstance();

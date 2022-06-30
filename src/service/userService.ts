@@ -37,11 +37,31 @@ class UserService {
         return UserService.instance;
     }
 
-    async list() {
-        const user = await UserModel.find({
-            select: ['id', 'name', 'email', 'address', 'status']
-        });
-        return user;
+    async list(req) {
+        try {
+
+            const user = await UserModel.createQueryBuilder('users');
+            const page =req.query.page || 1;
+            const perPage = 5;
+            user.offset((page-1)* perPage).limit(perPage);
+
+            const userData =user.getMany();
+            const results=[];
+            (await userData).forEach((elem)=>{
+                const result={
+                    id:elem.id,
+                    name:elem.name,
+                    email:elem.email,
+                    address:elem.address,
+                    phoneNo:elem.phoneNo
+                };
+                results.push(result);
+            });
+            return results;
+
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
     async create(data: UserDto,role) {
@@ -83,33 +103,46 @@ class UserService {
     }
 
     async readById(userId: number) {
-        const user = await UserModel.findOne({
-            where:{id: userId}
-        });
-        if (!user) throw new CustomError(STATUS.notFound,ERROR_MESSAGE.notFound);
-        return user;
+        try {
+            const user = await UserModel.findOne({
+                where:{id: userId}
+            });
+            if (!user) throw new CustomError(STATUS.notFound,ERROR_MESSAGE.notFound);
+            return user;
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
     async updateById(userId: number, user:UserDto) {
-        const userIdd = await UserModel.findOneBy({
-            id: userId,
-        });
-        UserModel.merge(userIdd, user);
-        const results = await UserModel.save(userIdd);
-        return results;
-
+        try {
+            const userIdd = await UserModel.findOneBy({
+                id: userId,
+            });
+            if(!userIdd) throw new CustomError(STATUS.notFound,ERROR_MESSAGE.notFound);
+            UserModel.merge(userIdd, user);
+            const results = await UserModel.save(userIdd);
+            return results;
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
     async deleteById(userId: number) {
-        const user = await UserModel.delete({
-            id: userId,
-        });
-        if (!user) throw new CustomError(STATUS.invalid,ERROR_MESSAGE.notFound);
-        return user;
+        try {
+            const user = await UserModel.delete({
+                id: userId,
+            });
+            if (!user) throw new CustomError(STATUS.invalid,ERROR_MESSAGE.notFound);
+            return user;
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
     async resetPasswordToken(email:string){
-        const isUser =await UserModel.findOne({where:{email:email}});
+        try {
+            const isUser =await UserModel.findOne({where:{email:email}});
         if(!isUser) throw new CustomError(STATUS.invalid, ERROR_MESSAGE.notFound);
 
         const expireDate = new Date();
@@ -127,74 +160,87 @@ class UserService {
             resetPasswordTokenExpireDate:expireDate
         });
         return SUCCESS_MESSAGE.emailSuccess;
-
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
     async resetPassword(resetPassword:ResetPasswordDto){
-        const {email,token,newPassword} = resetPassword;
-        const userEmail = await UserModel.findOne({where:{email:email}});
-        const verifyToken = await userEmail.resetPasswordToken;
-        const verifyExpiry = await userEmail.resetPasswordTokenExpireDate;
-        const currentdate = new Date();
+        try {
+            const {email,token,newPassword} = resetPassword;
+            const userEmail = await UserModel.findOne({where:{email:email}});
+            const verifyToken = await userEmail.resetPasswordToken;
+            const verifyExpiry = await userEmail.resetPasswordTokenExpireDate;
+            const currentdate = new Date();
 
-        const resetPwd = new ResetPasswordDto();
-        Object.keys(resetPassword).map((k)=>{
-            resetPwd[k] = resetPassword[k];
-        });
+            const resetPwd = new ResetPasswordDto();
+            Object.keys(resetPassword).map((k)=>{
+                resetPwd[k] = resetPassword[k];
+            });
 
-        const validation = await validate(resetPwd);
-        if(validation.length>0){
-            logger.info(validation[0].constraints);
-            return validation[0].constraints;
+            const validation = await validate(resetPwd);
+            if(validation.length>0){
+                logger.info(validation[0].constraints);
+                return validation[0].constraints;
 
+            }
+
+            /**verify resetToken with req.body.token */
+            if(verifyToken !== token) return ERROR_MESSAGE.invalidToken;
+
+            /**check if expiry date is less or greater than current time */
+            if(verifyExpiry < currentdate ) return EXPIRE_MESSAGE.tokenExpiry;
+
+            logger.info(SUCCESS_MESSAGE.tokenVerify);
+
+            /** Update user password if token matches and expiry date is greater than  current time */
+            const hashPassword =await bcrypt.hash(newPassword,bcrypt.genSaltSync());
+            await UserModel.update(userEmail.id,{password:hashPassword});
+            return SUCCESS_MESSAGE.resetPasswordSuccess;
+
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
         }
-
-        /**verify resetToken with req.body.token */
-        if(verifyToken !== token) return ERROR_MESSAGE.invalidToken;
-
-        /**check if expiry date is less or greater than current time */
-        if(verifyExpiry < currentdate ) return EXPIRE_MESSAGE.tokenExpiry;
-
-
-        logger.info(SUCCESS_MESSAGE.tokenVerify);
-
-        /** Update user password if token matches and expiry date is greater than  current time */
-        const hashPassword =await bcrypt.hash(newPassword,bcrypt.genSaltSync());
-        await UserModel.update(userEmail.id,{password:hashPassword});
-        return SUCCESS_MESSAGE.resetPasswordSuccess;
-
     }
 
     async changePassword(id,changePwd:ChangePasswordDto){
-        const userModel = await AppDataSource.getRepository(User);
-        const user = await userModel.findOne({where:{id:id}});
-        if(!user) return ERROR_MESSAGE.notFound;
+        try {
+            const userModel = await AppDataSource.getRepository(User);
+            const user = await userModel.findOne({where:{id:id}});
+            if(!user) return ERROR_MESSAGE.notFound;
 
-        const newUser = new ChangePasswordDto();
-        Object.keys(changePwd).map((k)=>{
-            newUser[k] = changePwd[k];
-        });
+            const newUser = new ChangePasswordDto();
+            Object.keys(changePwd).map((k)=>{
+                newUser[k] = changePwd[k];
+            });
 
-        const validation = await validate(newUser);
-        if(validation.length>0){
-            logger.info(validation[0].constraints);
-            return validation[0].constraints;
+            const validation = await validate(newUser);
+            if(validation.length>0){
+                logger.info(validation[0].constraints);
+                return validation[0].constraints;
 
+            }
+                const {newPassword,currentPassword} = changePwd;
+                const matchPassword =await bcrypt.compare(currentPassword,user.password);
+                if(!matchPassword) throw new CustomError(STATUS.invalid, ERROR_MESSAGE.invalidCurrentPassoword);
+
+                const hashPassword =await bcrypt.hash(newPassword,bcrypt.genSaltSync());
+                await userModel.update(user.id,{password:hashPassword});
+                return SUCCESS_MESSAGE.changePasswordSuccess;
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
         }
-            const {newPassword,currentPassword} = changePwd;
-            const matchPassword =await bcrypt.compare(currentPassword,user.password);
-            if(!matchPassword) throw new CustomError(STATUS.invalid, ERROR_MESSAGE.invalidCurrentPassoword);
-
-            const hashPassword =await bcrypt.hash(newPassword,bcrypt.genSaltSync());
-            await userModel.update(user.id,{password:hashPassword});
-            return SUCCESS_MESSAGE.changePasswordSuccess;
-
     }
 
     async profile(id){
-        const user = await AppDataSource.getRepository(User);
-        const findUser = await user.findOne({where:{id}});
-        return findUser;
+        try {
+            const user = await AppDataSource.getRepository(User);
+            const findUser = await user.findOne({where:{id}});
+            if(!findUser) throw new CustomError(STATUS.notFound,ERROR_MESSAGE.notFound);
+            return findUser;
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
 }

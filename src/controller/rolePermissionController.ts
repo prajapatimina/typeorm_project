@@ -17,7 +17,6 @@ class RolePermissionController{
     async getAll(req:Request,res:Response){
         try {
             const rolePermission = await rolePermissionService.getAll();
-            if(rolePermission.length === 0) throw new CustomError(STATUS.invalid, ERROR_MESSAGE.notFound);
             return res.send(rolePermission);
         } catch (error) {
             return res.status(error.status||400).json({

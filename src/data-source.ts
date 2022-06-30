@@ -16,9 +16,9 @@ export const AppDataSource = new DataSource({
     password: 'admin',
     database: 'User',
     synchronize: true,
-    logging: false,
+    logging: true,
     entities: [User,LoginToken,Role,Permission,RolePermission,UserRoles],
-    // migrations: ['./migration/*.ts/'],
+    // migrations: ["./migration/*.ts"],
     migrations: [roles1652682173026],
 
     migrationsTableName:"migration",

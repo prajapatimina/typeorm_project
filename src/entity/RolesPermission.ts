@@ -15,7 +15,8 @@ export class RolePermission{
     id: number;
 
     @OneToOne(() => Role,  (role) => role.id,{
-      onDelete:"CASCADE"
+      onDelete:"CASCADE",
+      eager: true
     })
     @JoinColumn()
         role: Role;

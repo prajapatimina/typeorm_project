@@ -6,6 +6,7 @@ import * as passport from 'passport';
 import * as expressPinoLogger from 'express-pino-logger';
 import logger from './logger/logger';
 import * as cookieParser from 'cookie-parser';
+import {pagination} from 'typeorm-pagination';
 
 const port = 3000;
 
@@ -20,7 +21,7 @@ app.use(
         saveUninitialized: true,
     })
 );
-
+app.use(pagination);
 app.use(passport.initialize());
 app.use(passport.session());
 

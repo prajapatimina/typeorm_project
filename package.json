@@ -1,5 +1,5 @@
 {
-  "name": "TypeormProject",
+  "name": "typeormproject",
   "version": "0.0.1",
   "description": "Awesome project developed with TypeORM.",
   "type": "commonjs",
@@ -20,6 +20,7 @@
     "csurf": "^1.11.0",
     "dotenv": "^16.0.0",
     "eslint-config-prettier": "^8.5.0",
+    "exceljs": "^4.3.0",
     "express": "^4.18.1",
     "express-pino-logger": "^7.0.0",
     "express-rate-limit": "^6.4.0",
@@ -38,7 +39,8 @@
     "prettier": "^2.6.2",
     "randexp": "^0.5.3",
     "reflect-metadata": "^0.1.13",
-    "typeorm": "0.3.6"
+    "typeorm": "0.3.6",
+    "typeorm-pagination": "^2.0.3"
   },
   "scripts": {
     "start": "ts-node src/index.ts",
@@ -50,8 +52,8 @@
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
     "prepare": "husky install",
-    "migration-run": "ts-node --project tsconfig.json ./node_modules/typeorm/cli.js migration:run -d ./src/data-source.ts",
-    "migration-revert": "ts-node --project tsconfig.json ./node_modules/typeorm/cli.js migration:revert -d ./src/data-source.ts"
+    "migration:run": "ts-node --project tsconfig.json ./node_modules/typeorm/cli.js migration:run -d ./src/data-source.ts",
+    "migration:revert": "ts-node --project tsconfig.json ./node_modules/typeorm/cli.js migration:revert -d ./src/data-source.ts"
   },
   "husky": {
     "hooks": {

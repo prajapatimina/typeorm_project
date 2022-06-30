@@ -32,20 +32,24 @@ class AuthService {
     }
 
     async login(auth: AuthDto) {
-        const userModel = await AppDataSource.getRepository(User);
-        const userEmail = await userModel.findOne({
-            where: { email: auth.email },relations:{loginToken_id:true}
-        });
+        try {
+            const userModel = await AppDataSource.getRepository(User);
+            const userEmail = await userModel.findOne({
+                where: { email: auth.email },relations:{loginToken_id:true}
+            });
 
-        if(!userEmail) throw new CustomError(STATUS.invalid,ERROR_MESSAGE.invalidLogin);
+            if(!userEmail) throw new CustomError(STATUS.invalid,ERROR_MESSAGE.invalidLogin);
 
-        const isPasswordMatching = await this.passwordMatch(auth.password,userEmail.password);
-        if(!isPasswordMatching) throw new CustomError(STATUS.invalid,ERROR_MESSAGE.invalidLogin);
+            const isPasswordMatching = await this.passwordMatch(auth.password,userEmail.password);
+            if(!isPasswordMatching) throw new CustomError(STATUS.invalid,ERROR_MESSAGE.invalidLogin);
 
             await this.verificationCodeEmail(userEmail);
             return {
                 message:SUCCESS_MESSAGE.emailSuccess,
             };
+        } catch (error) {
+            throw new CustomError(error.statusCode || error.status, error.errorMessage || error.message);
+        }
     }
 
     async verificationCodeEmail(auth) {

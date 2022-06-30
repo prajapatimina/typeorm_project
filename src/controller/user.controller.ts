@@ -3,6 +3,7 @@ import { ERROR_MESSAGE, STATUS, SUCCESS_MESSAGE } from '../constant/user';
 import userService from '../service/userService';
 import CustomError from '../errors/customError';
 import logger from '../logger/logger';
+import * as excel from 'exceljs';
 
 class UserController {
     private static instance: UserController;
@@ -16,8 +17,8 @@ class UserController {
 
     async listUser(req: Request, res: Response) {
         try {
-            const users = await userService.list();
-            if (users.length == 0) throw new CustomError(STATUS.notFound,ERROR_MESSAGE.notFound);
+            const users = await userService.list(req);
+            if (users.length === 0) throw new CustomError(STATUS.notFound,ERROR_MESSAGE.notFound);
             res.send(users);
         } catch (error) {
             return res.status(error.statusCode).json({
@@ -131,5 +132,43 @@ class UserController {
             });
         }
     }
+
+    async downloadSample(req, res, fn) {
+        try {
+            const userData = await userService.list(req);
+            const workbook = new excel.Workbook();
+            const worksheet = workbook.addWorksheet('user');
+            worksheet.columns = [
+                {header: 'Name', key: 'name'},
+                {header: 'Email', key: 'email'},
+                {header: 'Address', key: 'address'}
+            ];
+            worksheet.addRows(userData);
+
+            // (await userData).forEach((e, index) => {
+            //     // row 1 is the header.
+            //     const rowIndex = index + 2
+
+            //     // By using destructuring we can easily dump all of the data into the row without doing much
+            //     // We can add formulas pretty easily by providing the formula property.
+            //     worksheet.addRow({
+            //       ...e,
+            //     })
+            //   })
+
+
+
+
+    
+            // res.attachment("language-translation.xlsx");
+            return workbook.xlsx.write(res).then(function () {
+                res.end();
+            });
+        } catch (e) {
+            fn(e);
+            console.log(e);
+        }
+    }
+
 }
 export default UserController.getInstance();

@@ -1,7 +1,8 @@
 export const ERROR_MESSAGE = {
     alreadyExists : 'Permission already exists',
     notFound : "No permission found",
-    noPermission: "User has no permission to perform this action "
+    noPermission: "User has no permission to perform this action ",
+    connotCreate: "Permission unable to create"
 };
 
 export const STATUS = {

@@ -24,8 +24,10 @@ class UserRolesService{
 
     async getById(id){
         const user = await UserRolesModel.findOne({where:{id:id},relations:{user:true, role:true}});
+        console.log(user);
 
-        const role = await RolePermissionModel.createQueryBuilder("rolePermission")
+        const role = await RolePermissionModel
+            .createQueryBuilder("rolePermission")
             .where("rolePermission.roleId = :roleId", { roleId: user.role.id })
             .getOne();
 
